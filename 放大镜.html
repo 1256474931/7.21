@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .box,.box2{
+            width: 323px;
+            height: 430px;
+            position: absolute;
+            top: 100px;
+        }
+        .box{
+            border: 3px solid #333;
+            left: 100px;
+        }
+    
+        .box span{
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: rgba(200,200,200,.5);
+            display: none;
+        }
+        .box2 {
+            border: 3px solid #333;
+            left: 600px;
+            display: none;
+            overflow: hidden;
+        }
+        .box img{
+            width: 323px;
+            height: 430px;
+        }
+        .box2 img{
+            width: 1200px;
+            height: 900px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <img src="imgs/1.jpg" alt="">
+        <span></span>
+    </div>
+    <div class="box2">
+        <img src="imgs/2.jpg" alt="">
+    </div>
+    <script>
+        //构造函数
+            function Magnifier(options){
+                this.box = options.box;
+                this.box2 = options.box2;
+                this.img = options.img;
+                this.span = options.span;
+        
+                this.init()
+            }
+            //绑定事件
+            Magnifier.prototype.init = function(){
+                var that = this;
+                this.box.onmouseover = function(){
+                //span显示
+                    that.show()
+                }
+                this.box.onmouseout = function(){
+                //span隐藏
+                    that.hide()
+                }
+                this.box.onmousemove = function(eve){
+                    var e= eve || window.event;
+                    //span 跟随鼠标移动
+                    that.move(e)
+                }
+            }
+            Magnifier.prototype.show = function(){
+            //显示，并计算span的宽高
+                this.span.style.display = "block";
+                this.box2.style.display = "block";
+                this.span.style.width = this.box2.offsetWidth / this.img.offsetWidth * this.box.offsetWidth + "px";
+                this.span.style.height = this.box2.offsetHeight / this.img.offsetHeight * this.box.offsetHeight + "px";
+            }
+            Magnifier.prototype.hide = function(){
+            //隐藏
+                this.span.style.display = "none";
+                this.box2.style.display = "none";
+            }
+            Magnifier.prototype.move = function(e){
+            //计算移动距离
+                var l = e.clientX - this.box.offsetLeft - this.span.offsetWidth/2;
+                var t = e.clientY - this.box.offsetTop - this.span.offsetHeight/2;
+                //边界限定
+                if(l<0){
+                    l = 0;
+                }
+                if(l>this.box.offsetWidth - this.span.offsetWidth){
+                    l = this.box.offsetWidth - this.span.offsetWidth
+                }
+                if(t<0){
+                    t = 0;
+                }
+                if(t>this.box.offsetHeight - this.span.offsetHeight){
+                    t = this.box.offsetHeight - this.span.offsetHeight;
+                }
+                //span 跟随鼠标移动的距离
+                this.span.style.left = l + "px";
+                this.span.style.top = t + "px";
+                this.img.style.left = -  this.span.offsetLeft * 3 + "px";
+                this.img.style.top = - this.span.offsetTop * 3 + "px";
+            }
+        
+            new Magnifier({
+                box:document.querySelector(".box"),
+                box2:document.querySelector(".box2"),
+                img: document.querySelector(".box2 img"),
+                span: document.querySelector(".box span")
+            })
+        //此处为使鼠标移动所封装的move函数
+            function move(ele,json,callback){
+                clearInterval(ele.t);
+                ele.t = setInterval(() => {
+                    var onoff = true;
+                    for(var i in json){
+                        var iNow = parseInt(getStyle(ele,i));
+                        var speed = (json[i] - iNow)/6;
+                        speed = speed<0 ? Math.floor(speed) : Math.ceil(speed);
+                        if(iNow != json[i]){
+                            onoff = false;
+                        }
+                        ele.style[i] = iNow + speed + "px";
+                    }
+                    if(onoff){
+                        clearInterval(ele.t);
+                        callback && callback();
+                    }
+                }, 30);
+            }
+            function getStyle(ele,attr){
+                if(ele.currentStyle){
+                    return ele.currentStyle[attr];
+                }else{
+                    return getComputedStyle(ele,false)[attr];
+                }
+            }
+        
+        </script>
+</body>
+</html>
